@@ -1,0 +1,56 @@
+{
+  // 🖥️ Interface
+  "window.zoomLevel": 1,
+  "workbench.activityBar.location": "top",
+  "workbench.editor.labelFormat": "short",
+  "explorer.compactFolders": false,
+  "breadcrumbs.enabled": true,
+
+  // ✏️ Editor
+  "editor.fontSize": 14,
+  "editor.lineNumbers": "on",
+  "editor.glyphMargin": true,
+  "editor.tabSize": 2,
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+
+  // 🖥️ Terminal e Debug
+  "terminal.integrated.fontSize": 15,
+  "debug.console.fontSize": 14,
+
+  // 📄 Arquivos
+  "files.eol": "\n",
+  "files.associations": {
+    "*.php": "php"
+  },
+
+  // 🔍 Busca
+  "search.exclude": {
+    "**/.git": true,
+    "**/vendor": true,
+    "**/sql": false
+  },
+
+  // 🐘 PHP — formatação e Intelephense
+  "[php]": {
+    "editor.defaultFormatter": "bmewburn.vscode-intelephense-client",
+    "editor.formatOnSave": true,
+    "editor.tabSize": 4
+  },
+  "intelephense.environment.phpVersion": "8.0.0",
+  "intelephense.files.maxSize": 5000000,
+  "intelephense.format.enable": true,
+  "intelephense.completion.insertUseDeclaration": true,
+  "intelephense.completion.fullyQualifyGlobalConstantsAndFunctions": false,
+  "intelephense.diagnostics.enable": true,
+  "intelephense.diagnostics.undefinedMethods": true,
+  "intelephense.diagnostics.undefinedFunctions": true,
+  "intelephense.diagnostics.undefinedClassConstants": true,
+  "intelephense.diagnostics.undefinedConstants": true,
+
+  // 🗄️ MySQL
+  "database-client.defaultConnection": "MySQL"
+}
