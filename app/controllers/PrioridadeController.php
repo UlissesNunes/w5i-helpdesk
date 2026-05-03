@@ -16,11 +16,11 @@ class PrioridadeController
     // ── GET ?url=prioridades ─────────────────────────────────
     public function index(): void
     {
-        $prioridades = $this->model->getAll();
-        $erro        = $_GET['erro']    ?? null;
-        $sucesso     = $_GET['sucesso'] ?? null;
-
-        require_once __DIR__ . '/../views/prioridades/index.php';
+        $this->renderizar('prioridades/index', [
+            'prioridades' => $this->model->getAll(),
+            'erro'        => $_GET['erro']    ?? null,
+            'sucesso'     => $_GET['sucesso'] ?? null,
+        ]);
     }
 
     // ── POST ?url=prioridades/salvar ─────────────────────────
@@ -28,15 +28,19 @@ class PrioridadeController
     {
         $this->garantirMetodo('POST');
 
-        $nome  = trim($_POST['nome']  ?? '');
-        $horas = (int) ($_POST['horas'] ?? 0);
+        $nome  = $this->limpar($_POST['nome']  ?? '');
+        $horas = (int) ($_POST['horas']        ?? 0);
 
         if (empty($nome) || $horas <= 0) {
-            $this->redirecionar('prioridades', ['erro' => 'Preencha todos os campos corretamente.']);
+            $this->redirecionar('prioridades', [
+                'erro' => 'Preencha todos os campos corretamente.',
+            ]);
         }
 
         $this->model->create($nome, $horas);
-        $this->redirecionar('prioridades', ['sucesso' => 'Prioridade criada com sucesso.']);
+        $this->redirecionar('prioridades', [
+            'sucesso' => 'Prioridade criada com sucesso.',
+        ]);
     }
 
     // ── POST ?url=prioridades/deletar ────────────────────────
@@ -50,15 +54,34 @@ class PrioridadeController
             $this->redirecionar('prioridades', ['erro' => 'ID inválido.']);
         }
 
+        if (!$this->model->findById($id)) {
+            $this->redirecionar('prioridades', ['erro' => 'Prioridade não encontrada.']);
+        }
+
         try {
             $this->model->delete($id);
-            $this->redirecionar('prioridades', ['sucesso' => 'Prioridade removida com sucesso.']);
-        } catch (PDOException $e) {
-            $this->redirecionar('prioridades', ['erro' => 'Não é possível remover uma prioridade com chamados vinculados.']);
+            $this->redirecionar('prioridades', [
+                'sucesso' => 'Prioridade removida com sucesso.',
+            ]);
+        } catch (PDOException) {
+            $this->redirecionar('prioridades', [
+                'erro' => 'Não é possível remover uma prioridade com chamados vinculados.',
+            ]);
         }
     }
 
     // ── Helpers privados ─────────────────────────────────────
+
+    private function renderizar(string $view, array $dados = []): void
+    {
+        extract($dados);
+        require_once __DIR__ . "/../views/{$view}.php";
+    }
+
+    private function limpar(string $valor): string
+    {
+        return trim(strip_tags($valor));
+    }
 
     private function garantirMetodo(string $metodo): void
     {

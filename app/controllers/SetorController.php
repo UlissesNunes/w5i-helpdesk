@@ -16,11 +16,11 @@ class SetorController
     // ── GET ?url=setores ─────────────────────────────────────
     public function index(): void
     {
-        $setores = $this->model->getAll();
-        $erro    = $_GET['erro'] ?? null;
-        $sucesso = $_GET['sucesso'] ?? null;
-
-        require_once __DIR__ . '/../views/setores/index.php';
+        $this->renderizar('setores/index', [
+            'setores' => $this->model->getAll(),
+            'erro'    => $_GET['erro']    ?? null,
+            'sucesso' => $_GET['sucesso'] ?? null,
+        ]);
     }
 
     // ── POST ?url=setores/salvar ─────────────────────────────
@@ -28,9 +28,7 @@ class SetorController
     {
         $this->garantirMetodo('POST');
 
-        $nome = $this->limpar($_POST['nome'] ?? '');
-
-        // ── Validações ───────────────────────────────────────
+        $nome  = $this->limpar($_POST['nome'] ?? '');
         $erros = $this->validarNome($nome);
 
         if ($this->model->nomeExiste($nome)) {
@@ -41,7 +39,6 @@ class SetorController
             $this->redirecionar('setores', ['erro' => implode(' ', $erros)]);
         }
 
-        // ── Salvar ───────────────────────────────────────────
         $this->model->create($nome);
         $this->redirecionar('setores', ['sucesso' => 'Setor criado com sucesso.']);
     }
@@ -57,22 +54,25 @@ class SetorController
             $this->redirecionar('setores', ['erro' => 'ID inválido.']);
         }
 
-        $setor = $this->model->findById($id);
-
-        if (!$setor) {
+        if (!$this->model->findById($id)) {
             $this->redirecionar('setores', ['erro' => 'Setor não encontrado.']);
         }
 
         try {
             $this->model->delete($id);
             $this->redirecionar('setores', ['sucesso' => 'Setor removido com sucesso.']);
-        } catch (PDOException $e) {
-            // FK violation — setor tem chamados vinculados
+        } catch (PDOException) {
             $this->redirecionar('setores', ['erro' => 'Não é possível remover um setor com chamados vinculados.']);
         }
     }
 
     // ── Helpers privados ─────────────────────────────────────
+
+    private function renderizar(string $view, array $dados = []): void
+    {
+        extract($dados);
+        require_once __DIR__ . "/../views/{$view}.php";
+    }
 
     private function limpar(string $valor): string
     {
@@ -109,7 +109,7 @@ class SetorController
     private function redirecionar(string $url, array $params = []): void
     {
         $query = !empty($params) ? '&' . http_build_query($params) : '';
-        header("Location: ?url={$url}{$query}");
+        header("Location: /w5i-helpdesk/public/?url={$url}{$query}");
         exit();
     }
 }

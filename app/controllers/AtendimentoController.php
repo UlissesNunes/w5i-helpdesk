@@ -13,35 +13,132 @@ class AtendimentoController
         $this->model = new Chamado($pdo);
     }
 
-    public function checkin(): void
+    // ── GET ?url=atendimento ─────────────────────────────────
+    public function index(): void
     {
-        $id = (int)($_POST['id'] ?? 0);
-
-        if (!$this->model->checkin($id)) {
-            header('Location: ?url=chamados&erro=Não foi possível iniciar.');
-            exit();
-        }
-
-        header('Location: ?url=chamados&sucesso=Atendimento iniciado.');
-        exit();
+        $this->renderizar('atendimento/index', [
+            'chamados' => $this->buscarAtivos(),
+            'erro'     => $_GET['erro']    ?? null,
+            'sucesso'  => $_GET['sucesso'] ?? null,
+        ]);
     }
 
+    // ── POST ?url=chamados/checkin ───────────────────────────
+    public function checkin(): void
+    {
+        $this->garantirMetodo('POST');
+
+        $id = (int) ($_POST['id'] ?? 0);
+
+        if ($id <= 0) {
+            $this->redirecionar('atendimento', ['erro' => 'ID inválido.']);
+        }
+
+        if (!$this->model->checkin($id)) {
+            $this->redirecionar('atendimento', [
+                'erro' => 'Não foi possível iniciar. Verifique o status do chamado.',
+            ]);
+        }
+
+        $this->redirecionar('atendimento', [
+            'sucesso' => 'Atendimento iniciado com sucesso.',
+        ]);
+    }
+
+    // ── POST ?url=chamados/checkout ──────────────────────────
     public function checkout(): void
     {
-        $id      = (int)($_POST['id']     ?? 0);
-        $solucao = trim($_POST['solucao'] ?? '');
+        $this->garantirMetodo('POST');
+
+        $id      = (int) ($_POST['id']    ?? 0);
+        $solucao = $this->limpar($_POST['solucao'] ?? '');
+
+        if ($id <= 0) {
+            $this->redirecionar('atendimento', ['erro' => 'ID inválido.']);
+        }
 
         if (empty($solucao)) {
-            header('Location: ?url=chamados&erro=Informe a solução.');
-            exit();
+            $this->redirecionar('atendimento', [
+                'erro' => 'Informe a solução aplicada antes de finalizar.',
+            ]);
+        }
+
+        if (strlen($solucao) < 5) {
+            $this->redirecionar('atendimento', [
+                'erro' => 'A solução deve ter pelo menos 5 caracteres.',
+            ]);
         }
 
         if (!$this->model->checkout($id, $solucao)) {
-            header('Location: ?url=chamados&erro=Não foi possível finalizar.');
-            exit();
+            $this->redirecionar('atendimento', [
+                'erro' => 'Não foi possível finalizar. O chamado precisa estar em atendimento.',
+            ]);
         }
 
-        header('Location: ?url=chamados&sucesso=Chamado finalizado.');
+        $this->redirecionar('atendimento', [
+            'sucesso' => 'Chamado finalizado com sucesso.',
+        ]);
+    }
+
+    // ── Helpers privados ─────────────────────────────────────
+
+    private function buscarAtivos(): array
+    {
+        $todos = $this->model->getAll();
+
+        $ativos = array_filter(
+            $todos,
+            fn($c) => in_array($c['status'], ['Aberto', 'Em atendimento'])
+        );
+
+        return array_map(
+            fn($c) => $this->calcularTempo($c),
+            $ativos
+        );
+    }
+
+    private function calcularTempo(array $c): array
+    {
+        if (!$c['checkin_at']) {
+            $c['tempo_exibir'] = '—';
+            $c['atrasado']     = false;
+            return $c;
+        }
+
+        $ini  = new DateTime($c['checkin_at']);
+        $fim  = new DateTime($c['checkout_at'] ?? 'now');
+        $diff = $ini->diff($fim);
+        $min  = ($diff->days * 1440) + ($diff->h * 60) + $diff->i;
+
+        $c['tempo_exibir'] = $diff->h . 'h ' . $diff->i . 'min';
+        $c['atrasado']     = $min > ($c['tempo_estimado_horas'] * 60);
+
+        return $c;
+    }
+
+    private function renderizar(string $view, array $dados = []): void
+    {
+        extract($dados);
+        require_once __DIR__ . "/../views/{$view}.php";
+    }
+
+    private function limpar(string $valor): string
+    {
+        return trim(strip_tags($valor));
+    }
+
+    private function garantirMetodo(string $metodo): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== strtoupper($metodo)) {
+            http_response_code(405);
+            die('Método não permitido.');
+        }
+    }
+
+    private function redirecionar(string $url, array $params = []): void
+    {
+        $query = !empty($params) ? '&' . http_build_query($params) : '';
+        header("Location: /w5i-helpdesk/public/?url={$url}{$query}");
         exit();
     }
 }

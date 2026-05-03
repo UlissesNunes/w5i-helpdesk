@@ -56,8 +56,8 @@ class Chamado
     public function create(
         string $titulo,
         string $descricao,
-        int $setor_id,
-        int $prioridade_id
+        int    $setor_id,
+        int    $prioridade_id
     ): int {
         $stmt = $this->pdo->prepare('
             INSERT INTO chamados
@@ -88,8 +88,8 @@ class Chamado
             SET checkout_at = NOW(),
                 solucao     = ?,
                 status      = "Finalizado"
-            WHERE id      = ?
-            AND   status   = "Em atendimento"
+            WHERE id     = ?
+            AND   status = "Em atendimento"
         ');
         $stmt->execute([$solucao, $id]);
         return $stmt->rowCount() > 0;
@@ -102,6 +102,18 @@ class Chamado
             SET status = "Cancelado"
             WHERE id   = ?
             AND status NOT IN ("Finalizado", "Cancelado")
+        ');
+        $stmt->execute([$id]);
+        return $stmt->rowCount() > 0;
+    }
+
+    public function delete(int $id): bool
+    {
+        if ($id <= 0) return false;
+
+        $stmt = $this->pdo->prepare('
+            DELETE FROM chamados
+            WHERE id = ?
         ');
         $stmt->execute([$id]);
         return $stmt->rowCount() > 0;

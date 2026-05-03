@@ -8,90 +8,154 @@ require_once __DIR__ . '/../models/Prioridade.php';
 
 class ChamadoController
 {
-    private Chamado $model;
-    private PDO $pdo;
+    private Chamado    $model;
+    private Setor      $setorModel;
+    private Prioridade $prioridadeModel;
 
     public function __construct(PDO $pdo)
     {
-        $this->pdo   = $pdo;
-        $this->model = new Chamado($pdo);
+        $this->model           = new Chamado($pdo);
+        $this->setorModel      = new Setor($pdo);
+        $this->prioridadeModel = new Prioridade($pdo);
     }
 
+    // ── GET ?url=chamados ────────────────────────────────────
     public function index(): void
     {
-        $chamados = $this->model->getAll();
-
-        $chamados = array_map(function ($c) {
-            if ($c['checkin_at']) {
-                $ini  = new DateTime($c['checkin_at']);
-                $fim  = new DateTime($c['checkout_at'] ?? 'now');
-                $diff = $ini->diff($fim);
-                $min  = ($diff->h * 60) + $diff->i;
-                $c['tempo_exibir'] = $diff->h . 'h ' . $diff->i . 'min';
-                $c['atrasado']     = $min > ($c['tempo_estimado_horas'] * 60);
-            } else {
-                $c['tempo_exibir'] = '—';
-                $c['atrasado']     = false;
-            }
-            return $c;
-        }, $chamados);
-
-        require_once __DIR__ . '/../views/chamados/index.php';
+        $this->renderizar('chamados/index', [
+            'chamados' => $this->enriquecerLista($this->model->getAll()),
+            'erro'     => $_GET['erro']    ?? null,
+            'sucesso'  => $_GET['sucesso'] ?? null,
+        ]);
     }
 
+    // ── GET ?url=chamados/criar ──────────────────────────────
     public function create(): void
     {
-        $setores     = (new Setor($this->pdo))->getAll();
-        $prioridades = (new Prioridade($this->pdo))->getAll();
-        require_once __DIR__ . '/../views/chamados/create.php';
+        $this->renderizar('chamados/create', [
+            'setores'     => $this->setorModel->getAll(),
+            'prioridades' => $this->prioridadeModel->getAll(),
+            'erro'        => $_GET['erro'] ?? null,
+        ]);
     }
 
+    // ── POST ?url=chamados/salvar ────────────────────────────
     public function store(): void
     {
-        $titulo        = trim($_POST['titulo']        ?? '');
-        $descricao     = trim($_POST['descricao']     ?? '');
-        $setor_id      = (int)($_POST['setor_id']     ?? 0);
-        $prioridade_id = (int)($_POST['prioridade_id'] ?? 0);
+        $this->garantirMetodo('POST');
+
+        $titulo        = $this->limpar($_POST['titulo']         ?? '');
+        $descricao     = $this->limpar($_POST['descricao']      ?? '');
+        $setor_id      = (int) ($_POST['setor_id']              ?? 0);
+        $prioridade_id = (int) ($_POST['prioridade_id']         ?? 0);
 
         if (empty($titulo) || !$setor_id || !$prioridade_id) {
-            header('Location: ?url=chamados/criar&erro=Preencha todos os campos.');
-            exit();
+            $this->redirecionar('chamados/criar', [
+                'erro' => 'Título, setor e prioridade são obrigatórios.',
+            ]);
         }
 
         $this->model->create($titulo, $descricao, $setor_id, $prioridade_id);
-        header('Location: ?url=chamados&sucesso=Chamado criado com sucesso.');
-        exit();
+        $this->redirecionar('chamados', [
+            'sucesso' => 'Chamado aberto com sucesso.',
+        ]);
     }
 
-    public function checkin(): void
+    // ── POST ?url=chamados/cancelar ──────────────────────────
+    public function cancelar(): void
     {
-        $id = (int)($_POST['id'] ?? 0);
+        $this->garantirMetodo('POST');
 
-        if (!$this->model->checkin($id)) {
-            header('Location: ?url=chamados&erro=Não foi possível iniciar o atendimento.');
-            exit();
+        $id = (int) ($_POST['id'] ?? 0);
+
+        if ($id <= 0) {
+            $this->redirecionar('chamados', ['erro' => 'ID inválido.']);
         }
 
-        header('Location: ?url=chamados&sucesso=Atendimento iniciado.');
-        exit();
+        if (!$this->model->cancelar($id)) {
+            $this->redirecionar('chamados', [
+                'erro' => 'Não foi possível cancelar. O chamado pode já estar finalizado.',
+            ]);
+        }
+
+        $this->redirecionar('chamados', [
+            'sucesso' => 'Chamado cancelado.',
+        ]);
     }
 
-    public function checkout(): void
+    // ── POST ?url=chamados/deletar ───────────────────────────
+    public function destroy(): void
     {
-        $id      = (int)($_POST['id']      ?? 0);
-        $solucao = trim($_POST['solucao']  ?? '');
+        $this->garantirMetodo('POST');
 
-        if (empty($solucao)) {
-            header('Location: ?url=chamados&erro=Informe a solução aplicada.');
-            exit();
+        $id = (int) ($_POST['id'] ?? 0);
+
+        if ($id <= 0) {
+            $this->redirecionar('chamados', ['erro' => 'ID inválido.']);
         }
 
-        if (!$this->model->checkout($id, $solucao)) {
-            header('Location: ?url=chamados&erro=Não foi possível finalizar o chamado.');
-            exit();
+        if (!$this->model->findById($id)) {
+            $this->redirecionar('chamados', ['erro' => 'Chamado não encontrado.']);
         }
 
-        header('Location: ?url=chamados&sucesso=Chamado finalizado com sucesso.');
+        $this->model->delete($id);
+        $this->redirecionar('chamados', [
+            'sucesso' => 'Chamado removido com sucesso.',
+        ]);
+    }
+
+    // ── Helpers privados ─────────────────────────────────────
+
+    private function enriquecerLista(array $chamados): array
+    {
+        return array_map(
+            fn($c) => $this->calcularTempo($c),
+            $chamados
+        );
+    }
+
+    private function calcularTempo(array $c): array
+    {
+        if (!$c['checkin_at']) {
+            $c['tempo_exibir'] = '—';
+            $c['atrasado']     = false;
+            return $c;
+        }
+
+        $ini  = new DateTime($c['checkin_at']);
+        $fim  = new DateTime($c['checkout_at'] ?? 'now');
+        $diff = $ini->diff($fim);
+        $min  = ($diff->days * 1440) + ($diff->h * 60) + $diff->i;
+
+        $c['tempo_exibir'] = $diff->h . 'h ' . $diff->i . 'min';
+        $c['atrasado']     = $min > ($c['tempo_estimado_horas'] * 60);
+
+        return $c;
+    }
+
+    private function renderizar(string $view, array $dados = []): void
+    {
+        extract($dados);
+        require_once __DIR__ . "/../views/{$view}.php";
+    }
+
+    private function limpar(string $valor): string
+    {
+        return trim(strip_tags($valor));
+    }
+
+    private function garantirMetodo(string $metodo): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== strtoupper($metodo)) {
+            http_response_code(405);
+            die('Método não permitido.');
+        }
+    }
+
+    private function redirecionar(string $url, array $params = []): void
+    {
+        $query = !empty($params) ? '&' . http_build_query($params) : '';
+        header("Location: /w5i-helpdesk/public/?url={$url}{$query}");
         exit();
     }
 }

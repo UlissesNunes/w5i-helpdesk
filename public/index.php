@@ -17,6 +17,7 @@ match($url) {
     'chamados/salvar'      => (new ChamadoController($pdo))->store(),
     'chamados/checkin'     => (new AtendimentoController($pdo))->checkin(),
     'chamados/checkout'    => (new AtendimentoController($pdo))->checkout(),
+    'atendimento' => (new AtendimentoController($pdo))->index(),
     'setores'              => (new SetorController($pdo))->index(),
     'setores/salvar'       => (new SetorController($pdo))->store(),
     'setores/deletar'      => (new SetorController($pdo))->destroy(),
