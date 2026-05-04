@@ -1,4 +1,10 @@
 <?php require_once __DIR__ . '/../layouts/header.php'; ?>
+<?php require_once __DIR__ . '/../../helpers/prioridade.php'; ?>
+
+<?php
+/** @var array $setores     Setores vindos do ChamadoController */
+/** @var array $prioridades Prioridades vindas do ChamadoController */
+?>
 
 <main class="max-w-2xl mx-auto px-4 py-10">
 
@@ -45,7 +51,7 @@
                  transition resize-none"><?= htmlspecialchars($_POST['descricao'] ?? '') ?></textarea>
       </div>
 
-      <!-- Setor e Prioridade -->
+      <!-- Setor e Urgência -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
 
         <!-- Setor -->
@@ -53,6 +59,7 @@
           <label for="setor_id" class="block text-sm font-semibold text-gray-700 mb-1.5">
             Setor <span class="text-red-400">*</span>
           </label>
+
           <?php if (empty($setores)): ?>
           <div class="border border-orange-200 bg-orange-50 rounded-xl
                         px-4 py-2.5 text-sm text-orange-600">
@@ -73,30 +80,34 @@
           <?php endif; ?>
         </div>
 
-        <!-- Prioridade -->
+        <!-- Urgência -->
         <div>
           <label for="prioridade_id" class="block text-sm font-semibold text-gray-700 mb-1.5">
-            Prioridade <span class="text-red-400">*</span>
+            Urgência <span class="text-red-400">*</span>
           </label>
+
           <?php if (empty($prioridades)): ?>
           <div class="border border-orange-200 bg-orange-50 rounded-xl
                         px-4 py-2.5 text-sm text-orange-600">
             Nenhuma prioridade —
-            <a href="/w5i-helpdesk/public/?url=prioridades" class="underline hover:text-orange-800">cadastrar</a>
+            <a href="/w5i-helpdesk/public/?url=prioridades" class="underline hover:text-orange-800">ver prioridades</a>
           </div>
           <?php else: ?>
           <select id="prioridade_id" name="prioridade_id" required class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm
                      text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500
                      focus:border-transparent transition bg-white">
-            <option value="">Selecione a prioridade</option>
+            <option value="">Selecione a urgência</option>
             <?php foreach ($prioridades as $prioridade): ?>
             <option value="<?= $prioridade['id'] ?>"
               <?= (($_POST['prioridade_id'] ?? '') == $prioridade['id']) ? 'selected' : '' ?>>
               <?= htmlspecialchars($prioridade['nome']) ?>
-              (<?= $prioridade['tempo_estimado_horas'] ?>h)
+              — <?= labelPorNivel($prioridade['nivel']) ?>
             </option>
             <?php endforeach; ?>
           </select>
+          <p class="text-xs text-gray-400 mt-1.5">
+            Escolha com base no impacto do problema
+          </p>
           <?php endif; ?>
         </div>
 
@@ -118,8 +129,9 @@
 
   <p class="text-xs text-gray-400 text-center mt-5">
     O chamado será criado com status
-    <span class="bg-blue-50 text-blue-600 text-xs font-semibold
-                 px-2 py-0.5 rounded-md">Aberto</span>
+    <span class="bg-blue-50 text-blue-600 text-xs font-semibold px-2 py-0.5 rounded-md">
+      Aberto
+    </span>
     e ficará disponível para atendimento.
   </p>
 
