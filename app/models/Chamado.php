@@ -9,6 +9,7 @@ class Chamado
     public function __construct(PDO $pdo)
     {
         $this->pdo = $pdo;
+        $this->pdo->exec("SET time_zone = '-03:00'");
     }
 
     public function getAll(): array

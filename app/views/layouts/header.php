@@ -1,13 +1,9 @@
 <?php
-// ── URL atual para destacar link ativo ──────────────────────
-$urlAtual = $_GET['url'] ?? 'chamados';
-
-// ── Mensagens vindas do redirect ────────────────────────────
+$urlAtual     = $_GET['url']    ?? 'chamados';
 $toastSucesso = $_GET['sucesso'] ?? null;
 $toastErro    = $_GET['erro']    ?? null;
 $toastAviso   = $_GET['aviso']   ?? null;
 
-// ── Classe do link ativo/inativo ────────────────────────────
 function navClass(string $pagina, string $urlAtual): string {
     $ativo   = 'text-blue-600 bg-blue-50';
     $inativo = 'text-gray-600 hover:text-blue-600 hover:bg-blue-50';
@@ -22,212 +18,72 @@ function navClass(string $pagina, string $urlAtual): string {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>W5i Help Desk</title>
   <!--
-    Tailwind CSS via CDN (Play CDN)
-    Adequado para desenvolvimento e prototipagem.
+    Tailwind CSS via CDN — adequado para desenvolvimento e prototipagem.
     Em produção: substituir por build via PostCSS ou Tailwind CLI.
   -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-  /* ── Menu mobile ── */
-  #menu-mobile {
-    display: none;
-    flex-direction: column;
-    gap: 4px;
-    padding: 12px 16px 16px;
-    background: rgba(255, 255, 255, 0.95);
-    border-top: 1px solid #f3f4f6;
-    animation: slideDown .2s ease;
-  }
-
-  #menu-mobile.aberto {
-    display: flex;
-  }
-
-  #menu-mobile a {
-    font-size: 14px;
-    font-weight: 500;
-    padding: 10px 14px;
-    border-radius: 8px;
-    text-decoration: none;
-    transition: background .2s, color .2s;
-  }
-
-  #btn-hamburger {
-    display: none;
-    flex-direction: column;
-    gap: 5px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 6px;
-    border-radius: 6px;
-  }
-
-  #btn-hamburger span {
-    display: block;
-    width: 22px;
-    height: 2px;
-    background: #6b7280;
-    border-radius: 2px;
-    transition: transform .3s, opacity .3s;
-  }
-
-  #btn-hamburger.aberto span:nth-child(1) {
-    transform: translateY(7px) rotate(45deg);
-  }
-
-  #btn-hamburger.aberto span:nth-child(2) {
-    opacity: 0;
-  }
-
-  #btn-hamburger.aberto span:nth-child(3) {
-    transform: translateY(-7px) rotate(-45deg);
-  }
-
-  @keyframes slideDown {
-    from {
-      opacity: 0;
-      transform: translateY(-6px);
-    }
-
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  /* ── Toast ── */
-  #toast-container {
-    position: fixed;
-    top: 24px;
-    right: 24px;
-    z-index: 9999;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    pointer-events: none;
-  }
-
-  .toast {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 14px 16px;
-    border-radius: 12px;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, .10);
-    pointer-events: all;
-    min-width: 280px;
-    max-width: 380px;
-    opacity: 0;
-    transform: translateX(40px);
-    transition: opacity .3s ease, transform .3s ease;
-  }
-
-  .toast.show {
-    opacity: 1;
-    transform: translateX(0);
-  }
-
-  .toast-icon {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    font-size: 12px;
-    font-weight: 700;
-  }
-
-  .toast-msg {
-    flex: 1;
-    font-size: 13px;
-    font-weight: 500;
-    line-height: 1.4;
-    margin: 0;
-  }
-
-  .toast-close {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 18px;
-    line-height: 1;
-    padding: 0;
-    opacity: .5;
-    flex-shrink: 0;
-    transition: opacity .2s;
-  }
-
-  .toast-close:hover {
-    opacity: 1;
-  }
-
-  /* Variantes */
-  .toast-sucesso {
-    background: #f0fdf4;
-    border: 1px solid #86efac;
-    color: #166534;
-  }
-
-  .toast-sucesso .toast-icon {
-    background: #dcfce7;
-    color: #16a34a;
-  }
-
-  .toast-erro {
-    background: #fef2f2;
-    border: 1px solid #fca5a5;
-    color: #991b1b;
-  }
-
-  .toast-erro .toast-icon {
-    background: #fee2e2;
-    color: #dc2626;
-  }
-
-  .toast-aviso {
-    background: #fffbeb;
-    border: 1px solid #fcd34d;
-    color: #92400e;
-  }
-
-  .toast-aviso .toast-icon {
-    background: #fef3c7;
-    color: #d97706;
-  }
-
-  @media (max-width: 768px) {
-    #nav-desktop {
-      display: none;
-    }
-
-    #btn-hamburger {
-      display: flex;
-    }
-
-    #toast-container {
-      top: auto;
-      bottom: 24px;
-      right: 16px;
-      left: 16px;
-    }
-
-    .toast {
-      max-width: 100%;
-    }
-  }
-  </style>
 </head>
 
 <body class="bg-gray-100 min-h-screen">
 
   <!-- ── Toast container ── -->
-  <div id="toast-container"></div>
+  <div id="toast-container" class="fixed top-6 right-6 z-[9999] flex flex-col gap-2.5 pointer-events-none">
+  </div>
+
+  <!-- Toasts pré-renderizados com classes Tailwind estáticas — invisíveis até o JS animar -->
+  <?php if ($toastSucesso): ?>
+  <div id="toast-sucesso-tpl" class="hidden">
+    <div class="flex items-center gap-3 px-4 py-3.5 rounded-xl border shadow-lg
+                  pointer-events-auto min-w-[280px] max-w-[380px]
+                  bg-green-50 border-green-200 text-green-800
+                  opacity-0 translate-x-10 transition-all duration-300">
+      <div class="w-7 h-7 rounded-full flex items-center justify-center
+                    flex-shrink-0 text-xs font-bold bg-green-100 text-green-600">✓</div>
+      <p class="flex-1 text-sm font-medium leading-snug">
+        <?= htmlspecialchars($toastSucesso) ?>
+      </p>
+      <button class="opacity-40 hover:opacity-100 transition text-lg leading-none
+                       bg-transparent border-none cursor-pointer text-green-800">×</button>
+    </div>
+  </div>
+  <?php endif; ?>
+
+  <?php if ($toastErro): ?>
+  <div id="toast-erro-tpl" class="hidden">
+    <div class="flex items-center gap-3 px-4 py-3.5 rounded-xl border shadow-lg
+                  pointer-events-auto min-w-[280px] max-w-[380px]
+                  bg-red-50 border-red-200 text-red-800
+                  opacity-0 translate-x-10 transition-all duration-300">
+      <div class="w-7 h-7 rounded-full flex items-center justify-center
+                    flex-shrink-0 text-xs font-bold bg-red-100 text-red-600">✕</div>
+      <p class="flex-1 text-sm font-medium leading-snug">
+        <?= htmlspecialchars($toastErro) ?>
+      </p>
+      <button class="opacity-40 hover:opacity-100 transition text-lg leading-none
+                       bg-transparent border-none cursor-pointer text-red-800">×</button>
+    </div>
+  </div>
+  <?php endif; ?>
+
+  <?php if ($toastAviso): ?>
+  <div id="toast-aviso-tpl" class="hidden">
+    <div class="flex items-center gap-3 px-4 py-3.5 rounded-xl border shadow-lg
+                  pointer-events-auto min-w-[280px] max-w-[380px]
+                  bg-yellow-50 border-yellow-200 text-yellow-800
+                  opacity-0 translate-x-10 transition-all duration-300">
+      <div class="w-7 h-7 rounded-full flex items-center justify-center
+                    flex-shrink-0 text-xs font-bold bg-yellow-100 text-yellow-600">⚠</div>
+      <p class="flex-1 text-sm font-medium leading-snug">
+        <?= htmlspecialchars($toastAviso) ?>
+      </p>
+      <button class="opacity-40 hover:opacity-100 transition text-lg leading-none
+                       bg-transparent border-none cursor-pointer text-yellow-800">×</button>
+    </div>
+  </div>
+  <?php endif; ?>
 
   <!-- ── Header ── -->
-  <header class="bg-white/90 shadow-sm sticky top-0 z-50 backdrop-blur-sm">
+  <header class="bg-white/90 backdrop-blur-sm shadow-sm sticky top-0 z-50">
     <div class="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between">
 
       <!-- Logo -->
@@ -235,11 +91,15 @@ function navClass(string $pagina, string $urlAtual): string {
         <img src="/w5i-helpdesk/public/helpdesk_diurno_logo.png" alt="W5i Help Desk" class="h-22 w-28">
       </a>
 
-      <!-- Nav desktop — intocada -->
-      <nav id="nav-desktop" class="flex items-center gap-1">
+      <!-- Nav desktop -->
+      <nav id="nav-desktop" class="hidden md:flex items-center gap-1">
         <a href="/w5i-helpdesk/public/?url=chamados" class="px-3 py-2 rounded-md text-sm font-medium transition
                   <?= navClass('chamados', $urlAtual) ?>">
           Chamados
+        </a>
+        <a href="/w5i-helpdesk/public/?url=atendimento" class="px-3 py-2 rounded-md text-sm font-medium transition
+                  <?= navClass('atendimento', $urlAtual) ?>">
+          Atendimento
         </a>
         <a href="/w5i-helpdesk/public/?url=setores" class="px-3 py-2 rounded-md text-sm font-medium transition
                   <?= navClass('setores', $urlAtual) ?>">
@@ -256,27 +116,36 @@ function navClass(string $pagina, string $urlAtual): string {
       </nav>
 
       <!-- Hambúrguer mobile -->
-      <button id="btn-hamburger" onclick="toggleMenu()" aria-label="Menu">
-        <span></span>
-        <span></span>
-        <span></span>
+      <button id="btn-hamburger" onclick="toggleMenu()" aria-label="Menu" class="md:hidden flex flex-col gap-[5px] bg-transparent
+                     border-none cursor-pointer p-1.5 rounded-md">
+        <span class="block w-[22px] h-0.5 bg-gray-500 rounded-sm transition-all duration-300" id="bar1"></span>
+        <span class="block w-[22px] h-0.5 bg-gray-500 rounded-sm transition-all duration-300" id="bar2"></span>
+        <span class="block w-[22px] h-0.5 bg-gray-500 rounded-sm transition-all duration-300" id="bar3"></span>
       </button>
 
     </div>
 
     <!-- Menu mobile -->
-    <nav id="menu-mobile">
-      <a href="/w5i-helpdesk/public/?url=chamados" class="<?= navClass('chamados', $urlAtual) ?>">
+    <nav id="menu-mobile" class="hidden md:hidden flex-col gap-1 px-4 pb-4 pt-3
+                bg-white/95 border-t border-gray-100">
+      <a href="/w5i-helpdesk/public/?url=chamados" class="px-3 py-2.5 rounded-lg text-sm font-medium transition
+                <?= navClass('chamados', $urlAtual) ?>">
         Chamados
       </a>
-      <a href="/w5i-helpdesk/public/?url=setores" class="<?= navClass('setores', $urlAtual) ?>">
+      <a href="/w5i-helpdesk/public/?url=atendimento" class="px-3 py-2.5 rounded-lg text-sm font-medium transition
+                <?= navClass('atendimento', $urlAtual) ?>">
+        Atendimento
+      </a>
+      <a href="/w5i-helpdesk/public/?url=setores" class="px-3 py-2.5 rounded-lg text-sm font-medium transition
+                <?= navClass('setores', $urlAtual) ?>">
         Setores
       </a>
-      <a href="/w5i-helpdesk/public/?url=prioridades" class="<?= navClass('prioridades', $urlAtual) ?>">
+      <a href="/w5i-helpdesk/public/?url=prioridades" class="px-3 py-2.5 rounded-lg text-sm font-medium transition
+                <?= navClass('prioridades', $urlAtual) ?>">
         Prioridades
       </a>
-      <a href="/w5i-helpdesk/public/?url=chamados/criar"
-        class="bg-blue-600 text-white text-center rounded-lg mt-2 hover:bg-blue-700">
+      <a href="/w5i-helpdesk/public/?url=chamados/criar" class="mt-1 bg-blue-600 text-white text-sm font-medium text-center
+                px-4 py-2.5 rounded-lg hover:bg-blue-700 transition">
         + Novo chamado
       </a>
     </nav>
@@ -285,80 +154,73 @@ function navClass(string $pagina, string $urlAtual): string {
   <!-- Conteúdo da página entra aqui -->
 
   <script>
-  // ══════════════════════════════════════════════════════════
-  // Toast system
-  // ══════════════════════════════════════════════════════════
-  const toastConfig = {
-    sucesso: {
-      icon: '✓',
-      classe: 'toast-sucesso'
-    },
-    erro: {
-      icon: '✕',
-      classe: 'toast-erro'
-    },
-    aviso: {
-      icon: '⚠',
-      classe: 'toast-aviso'
-    },
-  };
+  // ── Toast ────────────────────────────────────────────────
+  function ativarToast(tplId) {
+    const tpl = document.getElementById(tplId);
+    if (!tpl) return;
 
-  function showToast(mensagem, tipo) {
-    const cfg = toastConfig[tipo] || toastConfig.sucesso;
+    const toast = tpl.querySelector('div');
     const container = document.getElementById('toast-container');
 
-    const toast = document.createElement('div');
-    toast.className = `toast ${cfg.classe}`;
-    toast.innerHTML = `
-        <div class="toast-icon">${cfg.icon}</div>
-        <p class="toast-msg">${mensagem}</p>
-        <button class="toast-close" onclick="fecharToast(this.parentElement)">×</button>
-      `;
-
     container.appendChild(toast);
+    tpl.remove();
+
+    // Botão fechar
+    toast.querySelector('button').addEventListener('click', () => fecharToast(toast));
 
     // Anima entrada
-    requestAnimationFrame(() => requestAnimationFrame(() => toast.classList.add('show')));
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      toast.classList.remove('opacity-0', 'translate-x-10');
+    }));
 
-    // Some automaticamente em 4s
+    // Some após 4s
     setTimeout(() => fecharToast(toast), 4000);
   }
 
   function fecharToast(toast) {
     if (!toast) return;
-    toast.classList.remove('show');
+    toast.classList.add('opacity-0', 'translate-x-10');
     setTimeout(() => toast?.remove(), 300);
   }
 
-  // ══════════════════════════════════════════════════════════
-  // Menu hambúrguer
-  // ══════════════════════════════════════════════════════════
+  // ── Menu hambúrguer ──────────────────────────────────────
   function toggleMenu() {
-    document.getElementById('menu-mobile').classList.toggle('aberto');
-    document.getElementById('btn-hamburger').classList.toggle('aberto');
+    const menu = document.getElementById('menu-mobile');
+    const isOpen = menu.classList.contains('flex');
+
+    menu.classList.toggle('hidden', isOpen);
+    menu.classList.toggle('flex', !isOpen);
+
+    document.getElementById('bar1').style.transform = isOpen ? '' : 'translateY(7px) rotate(45deg)';
+    document.getElementById('bar2').style.opacity = isOpen ? '1' : '0';
+    document.getElementById('bar3').style.transform = isOpen ? '' : 'translateY(-7px) rotate(-45deg)';
   }
 
   document.querySelectorAll('#menu-mobile a').forEach(link => {
     link.addEventListener('click', () => {
-      document.getElementById('menu-mobile').classList.remove('aberto');
-      document.getElementById('btn-hamburger').classList.remove('aberto');
+      document.getElementById('menu-mobile').classList.add('hidden');
+      document.getElementById('menu-mobile').classList.remove('flex');
     });
   });
 
-  // ══════════════════════════════════════════════════════════
-  // Dispara toasts vindos do PHP via URL
-  // ══════════════════════════════════════════════════════════
+  // ── Dispara toasts e limpa a URL ─────────────────────────
   document.addEventListener('DOMContentLoaded', function() {
     <?php if ($toastSucesso): ?>
-    showToast('<?= addslashes(htmlspecialchars($toastSucesso)) ?>', 'sucesso');
+    ativarToast('toast-sucesso-tpl');
     <?php endif; ?>
-
     <?php if ($toastErro): ?>
-    showToast('<?= addslashes(htmlspecialchars($toastErro)) ?>', 'erro');
+    ativarToast('toast-erro-tpl');
+    <?php endif; ?>
+    <?php if ($toastAviso): ?>
+    ativarToast('toast-aviso-tpl');
     <?php endif; ?>
 
-    <?php if ($toastAviso): ?>
-    showToast('<?= addslashes(htmlspecialchars($toastAviso)) ?>', 'aviso');
+    <?php if ($toastSucesso || $toastErro || $toastAviso): ?>
+    const url = new URL(window.location.href);
+    url.searchParams.delete('sucesso');
+    url.searchParams.delete('erro');
+    url.searchParams.delete('aviso');
+    window.history.replaceState({}, '', url.toString());
     <?php endif; ?>
   });
   </script>

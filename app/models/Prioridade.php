@@ -9,6 +9,7 @@ class Prioridade
     public function __construct(PDO $pdo)
     {
         $this->pdo = $pdo;
+        
     }
 
     public function getAll(): array

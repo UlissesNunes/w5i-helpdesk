@@ -100,23 +100,33 @@ class ChamadoController
     }
 
     private function calcularTempo(array $c): array
-    {
-        if (!$c['checkin_at']) {
-            $c['tempo_exibir'] = '—';
-            $c['atrasado']     = false;
-            return $c;
-        }
-
-        $ini  = new DateTime($c['checkin_at']);
-        $fim  = new DateTime($c['checkout_at'] ?? 'now');
-        $diff = $ini->diff($fim);
-        $min  = ($diff->days * 1440) + ($diff->h * 60) + $diff->i;
-
-        $c['tempo_exibir'] = $diff->h . 'h ' . $diff->i . 'min';
-        $c['atrasado']     = $min > (horasPorNivel($c['prioridade_nivel']) * 60);
-
+{
+    if (!$c['checkin_at']) {
+        $c['tempo_exibir'] = '—';
+        $c['atrasado']     = false;
         return $c;
     }
+
+ 
+    $tz = new DateTimeZone('America/Sao_Paulo');
+    $ini = new DateTime($c['checkin_at'], $tz);
+    
+
+    $fim = $c['checkout_at'] ? new DateTime($c['checkout_at'], $tz) : new DateTime('now', $tz);
+
+    $diff = $ini->diff($fim);
+    
+   
+    $minutosTotal = ($diff->days * 1440) + ($diff->h * 60) + $diff->i;
+
+    $c['tempo_exibir'] = ($diff->days > 0 ? $diff->days . 'd ' : '') . $diff->h . 'h ' . $diff->i . 'min';
+    
+    $slaMinutos = horasPorNivel($c['prioridade_nivel']) * 60;
+    
+    $c['atrasado'] = $minutosTotal > $slaMinutos;
+
+    return $c;
+}
 
     private function renderizar(string $view, array $dados = []): void
     {

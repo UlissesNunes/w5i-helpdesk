@@ -75,9 +75,9 @@
 
           <td class="px-6 py-4 text-right">
             <form action="/w5i-helpdesk/public/?url=setores/deletar" method="POST"
-              onsubmit="return confirm('Remover o setor \'<?= htmlspecialchars($setor['nome'], ENT_QUOTES) ?>\'?')">
+              onsubmit="event.preventDefault(); confirmar(this, 'Remover o setor \'<?= htmlspecialchars($setor['nome'], ENT_QUOTES) ?>\'?')">
               <input type="hidden" name="id" value="<?= $setor['id'] ?>">
-              <button type="submit" class="text-xs font-medium text-red-400 hover:text-red-600 transition">
+              <button type="submit" class="text-xs font-medium text-red-400  hover:text-red-600 transition">
                 Remover
               </button>
             </form>

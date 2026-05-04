@@ -186,16 +186,18 @@
               <?php if ($c['status'] === 'Aberto'): ?>
               <div class="flex flex-col items-end gap-1.5">
                 <form action="/w5i-helpdesk/public/?url=chamados/checkin" method="POST"
-                  onsubmit="return confirm('Iniciar atendimento do chamado #<?= $c['id'] ?>?')">
+                  onsubmit="event.preventDefault(); confirmar(this, 'Iniciar atendimento do chamado #<?= $c['id'] ?>?')">
                   <input type="hidden" name="id" value="<?= $c['id'] ?>">
                   <button type="submit" class="text-xs font-semibold text-blue-600 hover:text-blue-800 transition">
                     Iniciar
                   </button>
                 </form>
                 <form action="/w5i-helpdesk/public/?url=chamados/cancelar" method="POST"
-                  onsubmit="return confirm('Cancelar o chamado #<?= $c['id'] ?>?')">
+                  onsubmit="event.preventDefault(); confirmar(this, 'Deseja realmente cancelar este chamado?')">
+
                   <input type="hidden" name="id" value="<?= $c['id'] ?>">
-                  <button type="submit" class="text-xs font-medium text-gray-400 hover:text-red-500 transition">
+
+                  <button type="submit" class="text-xs font-medium text-red-400 hover:text-red-600 transition">
                     Cancelar
                   </button>
                 </form>
@@ -209,7 +211,7 @@
 
               <?php elseif (in_array($c['status'], ['Finalizado', 'Cancelado'])): ?>
               <form action="/w5i-helpdesk/public/?url=chamados/deletar" method="POST"
-                onsubmit="return confirm('Excluir permanentemente o chamado #<?= $c['id'] ?>?')">
+                onsubmit="event.preventDefault(); confirmar(this, 'Excluir permanentemente o chamado #<?= $c['id'] ?>?')">
                 <input type="hidden" name="id" value="<?= $c['id'] ?>">
                 <button type="submit" class="text-xs font-medium text-red-400 hover:text-red-600 transition">
                   Excluir

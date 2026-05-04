@@ -9,7 +9,8 @@
       <p class="text-sm text-gray-500 mt-1">Chamados aguardando ação</p>
     </div>
     <?php
-    $chamados = $chamados ?? [];
+    
+  $chamados = $chamados ?? [];
       $totalAtivos    = count($chamados);
       $totalAtrasados = count(array_filter($chamados, fn($c) => $c['atrasado']));
     ?>
@@ -26,7 +27,7 @@
   </div>
 
   <?php
-    $chamados = $chamados ?? [];
+    
     $abertos       = array_filter($chamados, fn($c) => $c['status'] === 'Aberto');
     $emAtendimento = array_filter($chamados, fn($c) => $c['status'] === 'Em atendimento');
   ?>
@@ -82,8 +83,11 @@
 
             <div class="flex flex-wrap gap-3">
               <span class="text-xs text-gray-400">📁 <?= htmlspecialchars($c['setor']) ?></span>
-              <span class="text-xs text-gray-400">⚡ <?= htmlspecialchars($c['prioridade']) ?> — SLA
-                <?= $c['tempo_estimado_horas'] ?>h</span>
+              <span class="text-xs text-gray-400">⚡ <?= htmlspecialchars($c['prioridade']) ?>
+                <?php if(isset($c['prioridade_nivel'])): ?>
+                — Prazo: <?= horasPorNivel($c['prioridade_nivel']) ?>h
+                <?php endif; ?>
+              </span>
               <span class="text-xs text-gray-400">🕐 <?= date('d/m H:i', strtotime($c['checkin_at'])) ?></span>
               <span class="text-xs font-semibold <?= $c['atrasado'] ? 'text-red-600' : 'text-gray-600' ?>">
                 ⏱ <?= $c['tempo_exibir'] ?>
@@ -145,9 +149,11 @@
 
             <div class="flex flex-wrap gap-3">
               <span class="text-xs text-gray-400">📁 <?= htmlspecialchars($c['setor']) ?></span>
-              <span class="text-xs text-gray-400">⚡ <?= htmlspecialchars($c['prioridade']) ?> — SLA
-                <?= $c['tempo_estimado_horas'] ?>h</span>
-              <span class="text-xs text-gray-400">📅 <?= date('d/m/Y H:i', strtotime($c['criado_em'])) ?></span>
+              <span class="text-xs text-gray-400">⚡ <?= htmlspecialchars($c['prioridade']) ?>
+                <?php if(isset($c['prioridade_nivel'])): ?>
+                — Prazo: <?= horasPorNivel($c['prioridade_nivel']) ?>h
+                <?php endif; ?>
+              </span>
             </div>
 
           </div>
