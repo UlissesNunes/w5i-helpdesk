@@ -17,14 +17,15 @@ class Chamado
             SELECT
                 c.id,
                 c.titulo,
+                c.descricao,
                 c.status,
                 c.checkin_at,
                 c.checkout_at,
                 c.solucao,
                 c.criado_em,
-                s.nome AS setor,
-                p.nome AS prioridade,
-                p.tempo_estimado_horas
+                s.nome  AS setor,
+                p.nome  AS prioridade,
+                p.nivel AS prioridade_nivel
             FROM chamados c
             JOIN setores     s ON s.id = c.setor_id
             JOIN prioridades p ON p.id = c.prioridade_id
@@ -41,9 +42,9 @@ class Chamado
         $stmt = $this->pdo->prepare('
             SELECT
                 c.*,
-                s.nome AS setor,
-                p.nome AS prioridade,
-                p.tempo_estimado_horas
+                s.nome  AS setor,
+                p.nome  AS prioridade,
+                p.nivel AS prioridade_nivel
             FROM chamados c
             JOIN setores     s ON s.id = c.setor_id
             JOIN prioridades p ON p.id = c.prioridade_id
@@ -112,8 +113,7 @@ class Chamado
         if ($id <= 0) return false;
 
         $stmt = $this->pdo->prepare('
-            DELETE FROM chamados
-            WHERE id = ?
+            DELETE FROM chamados WHERE id = ?
         ');
         $stmt->execute([$id]);
         return $stmt->rowCount() > 0;

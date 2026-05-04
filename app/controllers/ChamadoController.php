@@ -5,6 +5,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../models/Chamado.php';
 require_once __DIR__ . '/../models/Setor.php';
 require_once __DIR__ . '/../models/Prioridade.php';
+require_once __DIR__ . '/../helpers/prioridade.php';
 
 class ChamadoController
 {
@@ -19,7 +20,6 @@ class ChamadoController
         $this->prioridadeModel = new Prioridade($pdo);
     }
 
-    // ── GET ?url=chamados ────────────────────────────────────
     public function index(): void
     {
         $this->renderizar('chamados/index', [
@@ -29,7 +29,6 @@ class ChamadoController
         ]);
     }
 
-    // ── GET ?url=chamados/criar ──────────────────────────────
     public function create(): void
     {
         $this->renderizar('chamados/create', [
@@ -39,29 +38,25 @@ class ChamadoController
         ]);
     }
 
-    // ── POST ?url=chamados/salvar ────────────────────────────
     public function store(): void
     {
         $this->garantirMetodo('POST');
 
-        $titulo        = $this->limpar($_POST['titulo']         ?? '');
-        $descricao     = $this->limpar($_POST['descricao']      ?? '');
-        $setor_id      = (int) ($_POST['setor_id']              ?? 0);
-        $prioridade_id = (int) ($_POST['prioridade_id']         ?? 0);
+        $titulo        = $this->limpar($_POST['titulo']        ?? '');
+        $descricao     = $this->limpar($_POST['descricao']     ?? '');
+        $setor_id      = (int) ($_POST['setor_id']             ?? 0);
+        $prioridade_id = (int) ($_POST['prioridade_id']        ?? 0);
 
         if (empty($titulo) || !$setor_id || !$prioridade_id) {
             $this->redirecionar('chamados/criar', [
-                'erro' => 'Título, setor e prioridade são obrigatórios.',
+                'erro' => 'Título, setor e urgência são obrigatórios.',
             ]);
         }
 
         $this->model->create($titulo, $descricao, $setor_id, $prioridade_id);
-        $this->redirecionar('chamados', [
-            'sucesso' => 'Chamado aberto com sucesso.',
-        ]);
+        $this->redirecionar('chamados', ['sucesso' => 'Chamado aberto com sucesso.']);
     }
 
-    // ── POST ?url=chamados/cancelar ──────────────────────────
     public function cancelar(): void
     {
         $this->garantirMetodo('POST');
@@ -74,16 +69,13 @@ class ChamadoController
 
         if (!$this->model->cancelar($id)) {
             $this->redirecionar('chamados', [
-                'erro' => 'Não foi possível cancelar. O chamado pode já estar finalizado.',
+                'erro' => 'Não foi possível cancelar.',
             ]);
         }
 
-        $this->redirecionar('chamados', [
-            'sucesso' => 'Chamado cancelado.',
-        ]);
+        $this->redirecionar('chamados', ['sucesso' => 'Chamado cancelado.']);
     }
 
-    // ── POST ?url=chamados/deletar ───────────────────────────
     public function destroy(): void
     {
         $this->garantirMetodo('POST');
@@ -99,19 +91,12 @@ class ChamadoController
         }
 
         $this->model->delete($id);
-        $this->redirecionar('chamados', [
-            'sucesso' => 'Chamado removido com sucesso.',
-        ]);
+        $this->redirecionar('chamados', ['sucesso' => 'Chamado removido com sucesso.']);
     }
-
-    // ── Helpers privados ─────────────────────────────────────
 
     private function enriquecerLista(array $chamados): array
     {
-        return array_map(
-            fn($c) => $this->calcularTempo($c),
-            $chamados
-        );
+        return array_map(fn($c) => $this->calcularTempo($c), $chamados);
     }
 
     private function calcularTempo(array $c): array
@@ -128,7 +113,7 @@ class ChamadoController
         $min  = ($diff->days * 1440) + ($diff->h * 60) + $diff->i;
 
         $c['tempo_exibir'] = $diff->h . 'h ' . $diff->i . 'min';
-        $c['atrasado']     = $min > ($c['tempo_estimado_horas'] * 60);
+        $c['atrasado']     = $min > (horasPorNivel($c['prioridade_nivel']) * 60);
 
         return $c;
     }

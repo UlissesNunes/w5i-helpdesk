@@ -14,9 +14,9 @@ class Prioridade
     public function getAll(): array
     {
         $stmt = $this->pdo->prepare('
-            SELECT id, nome, tempo_estimado_horas
+            SELECT id, nome, nivel
             FROM prioridades
-            ORDER BY tempo_estimado_horas ASC
+            ORDER BY FIELD(nivel, "critico", "alta", "medio", "baixo")
         ');
         $stmt->execute();
         return $stmt->fetchAll();
@@ -27,30 +27,11 @@ class Prioridade
         if ($id <= 0) return false;
 
         $stmt = $this->pdo->prepare('
-            SELECT id, nome, tempo_estimado_horas
+            SELECT id, nome, nivel
             FROM prioridades
             WHERE id = ?
         ');
         $stmt->execute([$id]);
         return $stmt->fetch();
-    }
-
-    public function create(string $nome, int $horas): int
-    {
-        $stmt = $this->pdo->prepare('
-            INSERT INTO prioridades (nome, tempo_estimado_horas)
-            VALUES (?, ?)
-        ');
-        $stmt->execute([$nome, $horas]);
-        return (int) $this->pdo->lastInsertId();
-    }
-
-    public function delete(int $id): bool
-    {
-        $stmt = $this->pdo->prepare('
-            DELETE FROM prioridades WHERE id = ?
-        ');
-        $stmt->execute([$id]);
-        return $stmt->rowCount() > 0;
     }
 }

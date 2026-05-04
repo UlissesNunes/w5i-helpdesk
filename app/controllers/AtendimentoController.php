@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../models/Chamado.php';
+require_once __DIR__ . '/../helpers/prioridade.php';
 
 class AtendimentoController
 {
@@ -13,7 +14,6 @@ class AtendimentoController
         $this->model = new Chamado($pdo);
     }
 
-    // ── GET ?url=atendimento ─────────────────────────────────
     public function index(): void
     {
         $this->renderizar('atendimento/index', [
@@ -23,7 +23,6 @@ class AtendimentoController
         ]);
     }
 
-    // ── POST ?url=chamados/checkin ───────────────────────────
     public function checkin(): void
     {
         $this->garantirMetodo('POST');
@@ -40,12 +39,9 @@ class AtendimentoController
             ]);
         }
 
-        $this->redirecionar('atendimento', [
-            'sucesso' => 'Atendimento iniciado com sucesso.',
-        ]);
+        $this->redirecionar('atendimento', ['sucesso' => 'Atendimento iniciado com sucesso.']);
     }
 
-    // ── POST ?url=chamados/checkout ──────────────────────────
     public function checkout(): void
     {
         $this->garantirMetodo('POST');
@@ -75,12 +71,8 @@ class AtendimentoController
             ]);
         }
 
-        $this->redirecionar('atendimento', [
-            'sucesso' => 'Chamado finalizado com sucesso.',
-        ]);
+        $this->redirecionar('atendimento', ['sucesso' => 'Chamado finalizado com sucesso.']);
     }
-
-    // ── Helpers privados ─────────────────────────────────────
 
     private function buscarAtivos(): array
     {
@@ -91,10 +83,7 @@ class AtendimentoController
             fn($c) => in_array($c['status'], ['Aberto', 'Em atendimento'])
         );
 
-        return array_map(
-            fn($c) => $this->calcularTempo($c),
-            $ativos
-        );
+        return array_map(fn($c) => $this->calcularTempo($c), $ativos);
     }
 
     private function calcularTempo(array $c): array
@@ -111,7 +100,7 @@ class AtendimentoController
         $min  = ($diff->days * 1440) + ($diff->h * 60) + $diff->i;
 
         $c['tempo_exibir'] = $diff->h . 'h ' . $diff->i . 'min';
-        $c['atrasado']     = $min > ($c['tempo_estimado_horas'] * 60);
+        $c['atrasado']     = $min > (horasPorNivel($c['prioridade_nivel']) * 60);
 
         return $c;
     }
