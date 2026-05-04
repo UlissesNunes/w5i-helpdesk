@@ -21,7 +21,7 @@
   </div>
 </div>
 
-<footer class="mt-16 py-6" style="border-top: 1px solid #f3f4f6;">
+<footer class="mt-16 py-6 border-t border-gray-100">
   <p class="text-center text-xs text-gray-400">
     W5i Help Desk &copy; <?= date('Y') ?>
   </p>

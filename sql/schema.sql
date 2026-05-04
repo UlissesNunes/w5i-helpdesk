@@ -1,12 +1,14 @@
+
+
 CREATE TABLE setores (
     id   INT          AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE prioridades (
-    id                   INT          AUTO_INCREMENT PRIMARY KEY,
-    nome                 VARCHAR(255) NOT NULL,
-    tempo_estimado_horas INT          NOT NULL
+    id    INT          AUTO_INCREMENT PRIMARY KEY,
+    nome  VARCHAR(255) NOT NULL,
+    nivel ENUM('critico','alta','medio','baixo') NOT NULL DEFAULT 'medio'
 );
 
 CREATE TABLE chamados (

@@ -101,7 +101,7 @@
             <option value="<?= $prioridade['id'] ?>"
               <?= (($_POST['prioridade_id'] ?? '') == $prioridade['id']) ? 'selected' : '' ?>>
               <?= htmlspecialchars($prioridade['nome']) ?>
-              — <?= labelPorNivel($prioridade['nivel']) ?>
+              (<?= horasPorNivel($prioridade['nivel']) ?>h)
             </option>
             <?php endforeach; ?>
           </select>

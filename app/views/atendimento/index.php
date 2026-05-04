@@ -1,5 +1,9 @@
 <?php require_once __DIR__ . '/../layouts/header.php'; ?>
 
+<?php
+/** @var array $chamados Chamados ativos vindos do AtendimentoController */
+?>
+
 <main class="max-w-4xl mx-auto px-4 py-10">
 
   <!-- ── Cabeçalho ── -->
@@ -10,7 +14,7 @@
     </div>
     <?php
     
-  $chamados = $chamados ?? [];
+  
       $totalAtivos    = count($chamados);
       $totalAtrasados = count(array_filter($chamados, fn($c) => $c['atrasado']));
     ?>
@@ -159,7 +163,7 @@
           </div>
 
           <form action="/w5i-helpdesk/public/?url=chamados/checkin" method="POST"
-            onsubmit="return confirm('Iniciar atendimento do chamado #<?= $c['id'] ?>?')">
+            onsubmit="event.preventDefault(); confirmar(this, 'Iniciar atendimento do chamado #<?= $c['id'] ?>?')">
             <input type="hidden" name="id" value="<?= $c['id'] ?>">
             <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold
                          px-4 py-2 rounded-xl transition flex-shrink-0">
